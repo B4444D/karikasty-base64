@@ -28,15 +28,14 @@ export default function Home() {
     ]);
     setLoading(true);
 
-    try {const res = await fetch('https://karikasty-base64.vercel.app/api/convert', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ image: base64, prompt, outputType })
-    });
-    
-    
+    try {
+      const res = await fetch('/api/convert', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ image: base64, prompt, outputType })
+      });
 
       if (!res.ok) {
         const errorText = await res.text();
