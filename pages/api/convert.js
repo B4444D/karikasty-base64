@@ -10,19 +10,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { image, prompt = '', outputType = 'image' } = req.body;
-    if (!image) return res.status(400).json({ error: 'لم يتم إرسال صورة' });
-
-    const imgbbRes = await fetch(`https://api.imgbb.com/1/upload?key=${process.env.IMGBB_API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ image })
-    });
-
-    const imgbbData = await imgbbRes.json();
-    if (!imgbbData.success) throw new Error('فشل رفع الصورة إلى imgbb');
-
-    const imageUrl = imgbbData.data.url;
+    const { prompt = 'A cartoon portrait of a Saudi man in a white thobe and ghutra' } = req.body;
 
     const replicateRes = await fetch('https://api.replicate.com/v1/predictions', {
       method: 'POST',
@@ -31,30 +19,23 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        version: '20c352f1e123e5f5f9c2ac5745d60c81d87d5cf01acafc956d04329e753d0b3e',
-        input: { image: imageUrl, prompt }
+        version: 'db21e45a3f1664c826c0ad646d9b3d34b4509f7c8f8b6d00e5c6f05644b6222c', // stable-diffusion
+        input: {
+          prompt,
+          width: 512,
+          height: 512
+        }
       })
     });
 
-    const repData = await replicateRes.json();
-    if (!repData?.output) throw new Error('فشل توليد الصورة من Replicate');
+    const data = await replicateRes.json();
+    console.log("🔍 رد Replicate:", JSON.stringify(data));
 
-    let finalImage = repData.output;
-
-    if (outputType === 'sticker') {
-      const removeRes = await fetch('https://api.remove.bg/v1.0/removebg', {
-        method: 'POST',
-        headers: { 'X-Api-Key': process.env.REMOVEBG_API_KEY },
-        body: new URLSearchParams({ image_url: finalImage, size: 'auto' })
-      });
-
-      if (!removeRes.ok) throw new Error('فشل إزالة الخلفية');
-
-      const buffer = await removeRes.arrayBuffer();
-      finalImage = `data:image/png;base64,${Buffer.from(buffer).toString('base64')}`;
+    if (!data || data.error || !data.output) {
+      throw new Error('فشل توليد الصورة من Replicate');
     }
 
-    return res.status(200).json({ imageUrl: finalImage });
+    return res.status(200).json({ imageUrl: data.output });
   } catch (error) {
     return res.status(500).json({ error: error.message || 'حدث خطأ غير متوقع' });
   }
