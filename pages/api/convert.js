@@ -21,7 +21,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        version: 'db21e45a3f1664c826c0ad646d9b3d34b4509f7c8f8b6d00e5c6f05644b6222c', // stable-diffusion
+        version: 'a9758cbf62b4c927f1f2fda0c1fef1be28a90f29fb36cd87a7bfa01e6a8ba0a3', // stable-diffusion
         input: {
           prompt,
           width: 512,
@@ -31,12 +31,12 @@ export default async function handler(req, res) {
     });
 
     const prediction = await predictionRes.json();
+    console.log('📦 رد Replicate:', prediction);
 
     if (!prediction?.id) {
       throw new Error('لم يتم استلام معرف العملية من Replicate');
     }
 
-    // Polling
     let result = null;
     for (let i = 0; i < 20; i++) {
       const pollRes = await fetch(`https://api.replicate.com/v1/predictions/${prediction.id}`, {
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
         throw new Error('فشل توليد الصورة من Replicate');
       }
 
-      await sleep(2000); // انتظر 2 ثانية
+      await sleep(2000);
     }
 
     if (!result) {
