@@ -53,7 +53,7 @@ export default function Home() {
 
   return (
     <main style={{ maxWidth: 600, margin: 'auto', padding: 20 }}>
-      <h2>كاريكاستي 🤖 - تحويل كرتوني</h2>
+      <h2>🤖 سعدون AI - حوّل صورتك إلى كرتون أو ملصق</h2>
 
       <div style={{ background: '#fff', padding: 15, borderRadius: 10, marginBottom: 20 }}>
         {messages.map((msg, idx) => (
@@ -79,6 +79,23 @@ export default function Home() {
       </select>
       <button onClick={sendRequest} style={{ marginTop: 10, padding: 10, background: '#25d366', color: '#fff', border: 'none', borderRadius: 6 }}>
         ✨ توليد
+      </button>
+
+      {/* زر لاختبار POST */}
+      <button onClick={async () => {
+        try {
+          const res = await fetch('/api/testpost', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ test: true })
+          });
+          const data = await res.json();
+          alert('✅ استجابة API:\n' + JSON.stringify(data));
+        } catch (err) {
+          alert('❌ فشل الاتصال بـ API');
+        }
+      }} style={{ marginTop: 20, padding: 10, background: '#007bff', color: '#fff', border: 'none', borderRadius: 6 }}>
+        🧪 اختبار API
       </button>
     </main>
   );
