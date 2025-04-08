@@ -1,4 +1,3 @@
-// pages/index.js
 import { useState } from 'react';
 
 export default function Home() {
@@ -8,13 +7,19 @@ export default function Home() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   const sendRequest = async () => {
     if (!image) return alert('يرجى رفع صورة');
 
-    const formData = new FormData();
-    formData.append('image', image);
-    formData.append('prompt', prompt);
-    formData.append('outputType', outputType);
+    const base64 = await convertToBase64(image);
 
     setMessages(prev => [
       ...prev,
@@ -23,11 +28,15 @@ export default function Home() {
     ]);
     setLoading(true);
 
-    try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        body: formData
-      });
+    try {const res = await fetch('https://karikasty-base64.vercel.app/api/convert', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ image: base64, prompt, outputType })
+    });
+    
+    
 
       if (!res.ok) {
         const errorText = await res.text();
